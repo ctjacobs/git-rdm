@@ -86,11 +86,17 @@ class RDM:
         
         self.db_connect()
         
-        #TODO: First check that the file being added is actually under version control.
+        # First check that the file being added is actually under version control.
+        found = False
+        for b in self.repo.tree().blobs:
+            if b.abspath == path:
+                found = True
+                break
+        if not found:
+            _LOG.error("Could not add file for publishing because it is not under Git version control.")
+            return
         
-        
-        
-        
+
         if isinstance(path, str):
             paths = [[os.path.abspath(path)]]
         else:
