@@ -200,11 +200,11 @@ class RDM:
             _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
             return
         
-        # Get the minimal amount of metadata needed to publish from the user.
+        # TODO: Get the minimal amount of metadata needed to publish from the user.
         parameters = {}          
         
         # Publish to the repository hosting service.
-        private = True #FIXME: Get the user to define this.
+        private = True #TODO: Get the user to define this.
         self.publisher = Publisher(service=service)
         #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
         doi = "10.LOL.10/10.50figshare"
@@ -293,6 +293,7 @@ if(__name__ == "__main__"):
     # 'git rdm publish'
     publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
     publish_parser.add_argument("service", help="The service with which to publish.", action="store", type=str)
+    publish_parser.add_argument("--pid", required=False, help="The ID of an existing publication. This will result in a new version of the publication being created. The DOI will stay the same.", action="store", default=None, type=str)
     
     # Parse all arguments
     args = parser.parse_args()
@@ -314,7 +315,7 @@ if(__name__ == "__main__"):
     elif args.subcommand == "ls":
         rdm.ls()
     elif args.subcommand == "publish":
-        rdm.publish(args.service)
+        rdm.publish(service=args.service, pid=args.pid)
     elif args.subcommand == "status":
         rdm.status()
     else:
