@@ -17,9 +17,10 @@ _LOG.setLevel(logging.INFO)
 
 try:
     import pyrdm
+    from pyrdm.publisher import Publisher
 except ImportError:
     _LOG.exception("Could not import the PyRDM library necessary for research data management.")
-    #sys.exit(1)
+    sys.exit(1)
 
 PUBLICATIONS_TABLE = "publications"
 
@@ -33,9 +34,7 @@ class RDM:
         except git.InvalidGitRepositoryError:
             _LOG.exception("Not in a Git version controlled repository.")
             sys.exit(1)
-        
-        self.to_publish = []
-        
+
         return
         
     
@@ -43,7 +42,7 @@ class RDM:
     # git-rdm subcommands
 
     
-    def init(self):
+    def initialise(self):
         """ Initialise the RDM control directory and set up the SQL database of published files. """
         
         # Create the RDM control directory if it doesn't already exist.
@@ -51,14 +50,7 @@ class RDM:
             os.makedirs(".rdm")
         
         # Set up the SQLite database.
-        _LOG.debug("Attempting to connect to publication database...")
-        path = self.repo.working_dir + "/.rdm/publications.db"
-        try:
-            self.connection = sqlite.connect(path)
-            self.connection.row_factory = sqlite.Row
-            _LOG.debug("Connected successfully!")
-        except sqlite.Error as e:
-            _LOG.exception(e)
+        self.db_connect()
         
         # If this file already exists, then skip this step.
         if self.db_exists():
@@ -67,12 +59,11 @@ class RDM:
             # Set up publication table columns.
             with self.connection:
                 c = self.connection.cursor()
-                query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, title TEXT, description TEXT, doi TEXT)" % PUBLICATIONS_TABLE
+                query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
                 c.execute(query)
 
         # Disconnect.
-        if(self.connection):
-            self.connection.close()
+        self.db_disconnect()
 
         return
 
@@ -80,28 +71,73 @@ class RDM:
     def add(self, path):
         """ Add a desired file to the 'publication' staging area. """
         
-        if self.repo.is_dirty():
-            _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
-            return
-            
-        self.to_publish.append(path)
+        self.db_connect()
         
+        #TODO: First check that the file being added is actually under version control.
+        
+        
+        
+        
+        if isinstance(path, str):
+            paths = [[os.path.abspath(path)]]
+        else:
+            paths = [path]
+        
+        query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL)" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.executemany(query, paths)
+        
+        #query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
+        #with self.connection:
+        #    c = self.connection.cursor()
+        #    c.execute(query)
+        #    print c.fetchone()
+        self.db_disconnect()
         return
 
     def rm(self, path):
         """ Remove a desired file from the 'publication' staging area. """
         
-        if path in self.to_publish:
-            self.to_publish.remove(path)
+        self.db_connect()
+        
+        if isinstance(path, str):
+            paths = [[os.path.abspath(path)]]
         else:
-            _LOG.warning("File does not exist in the list of files to be published. Skipping...")
+            paths = [path]        
+        
+        query = "DELETE FROM %s WHERE path=?" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.executemany(query, paths)
+
+        self.db_disconnect()
         
         return
 
     def publish(self, service, pid=None):
         """ Publish the desired files. """
-        
-        if self.repo.is_dirty():
+
+        self.db_connect()
+
+        # Find all files without a DOI (and assume these are in the publication staging area).
+        with self.connection:
+            query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
+            c = self.connection.cursor()
+            c.execute(query)
+            to_publish = c.fetchall()
+
+        if not to_publish:
+            _LOG.warning("No files selected for publication.")
+            return
+
+        # Does the user needs to commit any modified files first?
+        modified_files = self.repo.git.diff('HEAD~1..HEAD', name_only=True)
+        overlap = False
+        for f in to_publish:
+            if f["path"] in modified_files:
+                overlap = True
+        if self.repo.is_dirty() and overlap:
             _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
             return
         
@@ -109,21 +145,39 @@ class RDM:
         parameters = {}          
         
         # Publish to the repository hosting service.
-        private= True #FIXME: Get the user to define this.
-        self.publisher = pyrdm.Publisher(service=service)
-        self.publisher.publish_data(parameters, pid=pid, private=private)
+        private = True #FIXME: Get the user to define this.
+        self.publisher = Publisher(service=service)
+        #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
         
-        # Update the publications database.
+        # Update the publications database by adding the DOIs to the previously-staged files.
+        with self.connection:
+            query = "UPDATE %s SET doi=%s WHERE doi IS NULL" % (PUBLICATIONS_TABLE, doi)
+            c = self.connection.cursor()
+            c.execute(query)
         
-        
-        # Clear the list of files to publish.
-        self.to_publish = []
+        self.db_disconnect()
         
         return
         
         
         
     # Helpers
+
+    def db_connect(self):
+        _LOG.debug("Attempting to connect to publication database...")
+        path = self.repo.working_dir + "/.rdm/publications.db"
+        try:
+            self.connection = sqlite.connect(path)
+            self.connection.row_factory = sqlite.Row
+            _LOG.debug("Connected successfully!")
+        except sqlite.Error as e:
+            _LOG.exception(e)
+        return
+
+    def db_disconnect(self):
+        if(self.connection):
+            self.connection.close()
+        return
 
     def db_search_by_path(self, path):
         try:
@@ -186,7 +240,7 @@ if(__name__ == "__main__"):
     # Execute the desired subcommand
     rdm = RDM()
     if args.subcommand == "init":
-        rdm.init()
+        rdm.initialise()
     elif args.subcommand == "add":
         rdm.add(args.path)
     elif args.subcommand == "rm":
