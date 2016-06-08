@@ -70,8 +70,6 @@ class RDM:
         # Set up publication table columns.
         with self.connection:
             c = self.connection.cursor()
-            query = "DROP TABLE %s" % PUBLICATIONS_TABLE
-            c.execute(query)
             query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
             c.execute(query)
 
@@ -85,27 +83,38 @@ class RDM:
         """ Add a desired file to the 'publication' staging area. """
         
         self.db_connect()
-        
-        # First check that the file being added is actually under version control.
-        found = False
-        for b in self.repo.tree().blobs:
-            if b.abspath == path:
-                found = True
-                break
-        if not found:
-            _LOG.error("Could not add file for publishing because it is not under Git version control.")
-            return
-        
 
+        # Convert argument to a list of lists.
         if isinstance(path, str):
-            paths = [[os.path.abspath(path)]]
+            paths = [os.path.abspath(path)]
         else:
-            paths = [path]
+            paths = path
+            
+        # Check that the file/files being added is/are actually under version control.
+        for f in paths:
+            found = False
+            for b in self.repo.tree().blobs:
+                if b.abspath == os.path.abspath(f):
+                    found = True
+                    break
+            if not found:
+                _LOG.error("Could not add file '%s' for publishing because it is not under Git version control." % f)
+                return
         
-        query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL)" % PUBLICATIONS_TABLE
-        with self.connection:
-            c = self.connection.cursor()
-            c.executemany(query, paths)
+        # Check that the file has not been added for publication already. If not, then add it to the database.
+        for f in paths:
+            with self.connection:
+                query = "SELECT * FROM %s WHERE path=? AND doi is NULL" % PUBLICATIONS_TABLE
+                c = self.connection.cursor()
+                c.execute(query, [os.path.abspath(f)])
+                result = c.fetchall()
+                if len(result) > 0:
+                    _LOG.warning("File '%s' has been added already. Skipping..." % os.path.abspath(f))
+                else:
+                    query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL)" % PUBLICATIONS_TABLE
+                    c = self.connection.cursor()
+                    c.execute(query, [os.path.abspath(f)])
+            
         
         #query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
         #with self.connection:
