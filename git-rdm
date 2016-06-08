@@ -311,12 +311,12 @@ if(__name__ == "__main__"):
         rdm.add(args.path)
     elif args.subcommand == "rm":
         rdm.rm(args.path)
+    elif args.subcommand == "ls":
+        rdm.ls()
     elif args.subcommand == "publish":
         rdm.publish(args.service)
     elif args.subcommand == "status":
         rdm.status()
-    elif args.subcommand == "ls":
-        rdm.ls()
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
         
