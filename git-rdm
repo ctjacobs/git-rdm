@@ -54,13 +54,26 @@ class RDM:
         
         # If this file already exists, then skip this step.
         if self.db_exists():
-            _LOG.error("Cannot initialise the publications database since it already exists.")
-        else:
-            # Set up publication table columns.
-            with self.connection:
-                c = self.connection.cursor()
-                query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
-                c.execute(query)
+            response = raw_input("The publications database already exists. Do you want to overwrite it? (y/n)\n")
+            if response == "y":
+                overwrite = True
+                _LOG.info("Overwriting...")
+                with self.connection:
+                    c = self.connection.cursor()
+                    query = "DROP TABLE %s" % PUBLICATIONS_TABLE
+                    c.execute(query)
+            else:
+                overwrite = False
+                _LOG.info("Not overwriting.")
+                return
+
+        # Set up publication table columns.
+        with self.connection:
+            c = self.connection.cursor()
+            query = "DROP TABLE %s" % PUBLICATIONS_TABLE
+            c.execute(query)
+            query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
+            c.execute(query)
 
         # Disconnect.
         self.db_disconnect()
