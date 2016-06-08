@@ -148,13 +148,17 @@ class RDM:
         private = True #FIXME: Get the user to define this.
         self.publisher = Publisher(service=service)
         #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
+        doi = "10.LOL.10/10.50figshare"
+        pid = str(23423)
         
-        # Update the publications database by adding the DOIs to the previously-staged files.
+        # Update the publications database by adding the DOIs and publication IDs to the previously-staged files.
         with self.connection:
-            query = "UPDATE %s SET doi=%s WHERE doi IS NULL" % (PUBLICATIONS_TABLE, doi)
             c = self.connection.cursor()
-            c.execute(query)
-        
+            query = "UPDATE %s SET doi=? WHERE doi IS NULL" % (PUBLICATIONS_TABLE)
+            c.execute(query, [doi])
+            query = "UPDATE %s SET pid=? WHERE pid IS NULL" % (PUBLICATIONS_TABLE)
+            c.execute(query, [pid])
+          
         self.db_disconnect()
         
         return
