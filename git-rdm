@@ -34,6 +34,8 @@ class RDM:
             _LOG.exception("Not in a Git version controlled repository.")
             sys.exit(1)
         
+        self.to_publish = []
+        
         return
         
     
@@ -58,7 +60,7 @@ class RDM:
         except sqlite.Error as e:
             _LOG.exception(e)
         
-        # If this is 
+        # If this file already exists, then skip this step.
         if self.db_exists():
             _LOG.error("Cannot initialise the publications database since it already exists.")
         else:
@@ -76,11 +78,51 @@ class RDM:
 
 
     def add(self, path):
-        print path
+        """ Add a desired file to the 'publication' staging area. """
+        
+        if self.repo.is_dirty():
+            _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
+            return
+            
+        self.to_publish.append(path)
+        
         return
 
+    def rm(self, path):
+        """ Remove a desired file from the 'publication' staging area. """
+        
+        if path in self.to_publish:
+            self.to_publish.remove(path)
+        else:
+            _LOG.warning("File does not exist in the list of files to be published. Skipping...")
+        
+        return
 
-
+    def publish(self, service, pid=None):
+        """ Publish the desired files. """
+        
+        if self.repo.is_dirty():
+            _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
+            return
+        
+        # Get the minimal amount of metadata needed to publish from the user.
+        parameters = {}          
+        
+        # Publish to the repository hosting service.
+        private= True #FIXME: Get the user to define this.
+        self.publisher = pyrdm.Publisher(service=service)
+        self.publisher.publish_data(parameters, pid=pid, private=private)
+        
+        # Update the publications database.
+        
+        
+        # Clear the list of files to publish.
+        self.to_publish = []
+        
+        return
+        
+        
+        
     # Helpers
 
     def db_search_by_path(self, path):
@@ -113,18 +155,27 @@ if(__name__ == "__main__"):
     # Command line arguments
     parser = argparse.ArgumentParser(prog="git-rdm")
     parser.add_argument("-d", "--debug", action="store_true", default=False, help="Enable debugging.")
+    
+    # Subparsers
     subparsers = parser.add_subparsers(help="The subcommand of 'git rdm'.", dest='subcommand')
     
-    # git rdm init
+    # 'git rdm init'
     init_parser = subparsers.add_parser("init", help="Initialise the .rdm control directory and publication database.")
     
-    # git rdm add
+    # 'git rdm add'
     add_parser = subparsers.add_parser("add", help="Add a file to the publishing staging area.")
-    add_parser.add_argument("path", help="The path to the file to be published.", action="store", type=str)
+    add_parser.add_argument("path", help="The path to the file to be added.", action="store", type=str)
+
+    # 'git rdm rm'
+    rm_parser = subparsers.add_parser("rm", help="Remove a file from the publishing staging area.")
+    rm_parser.add_argument("path", help="The path to the file to be removed.", action="store", type=str)
+
+    # 'git rdm publish'
+    publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
+    publish_parser.add_argument("service", help="The service with which to publish.", action="store", type=str)
     
     # Parse all arguments
     args = parser.parse_args()
-    print args
 
     # Output debugging messages to a file
     if(args.debug):
@@ -138,6 +189,10 @@ if(__name__ == "__main__"):
         rdm.init()
     elif args.subcommand == "add":
         rdm.add(args.path)
+    elif args.subcommand == "rm":
+        rdm.rm(args.path)
+    elif args.subcommand == "publish":
+        rdm.publish(args.service)
     elif args.subcommand == "status":
         rdm.status()
     else:
