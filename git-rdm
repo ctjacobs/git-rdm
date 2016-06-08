@@ -13,13 +13,15 @@ _HANDLER = logging.StreamHandler()
 _LOG.addHandler(_HANDLER)
 _HANDLER.setFormatter(logging.Formatter('%(module)s %(levelname)s: %(message)s'))
 del(_HANDLER)
-_LOG.setLevel(logging.DEBUG)
+_LOG.setLevel(logging.INFO)
 
 try:
     import pyrdm
 except ImportError:
     _LOG.exception("Could not import the PyRDM library necessary for research data management.")
     #sys.exit(1)
+
+PUBLICATIONS_TABLE = "publications"
 
 class RDM:
     
@@ -34,6 +36,11 @@ class RDM:
         
         return
         
+    
+    
+    # git-rdm subcommands
+
+    
     def init(self):
         """ Initialise the RDM control directory and set up the SQL database of published files. """
         
@@ -42,26 +49,60 @@ class RDM:
             os.makedirs(".rdm")
         
         # Set up the SQLite database.
-        logging.debug("Attempting to connect to publication database...")
+        _LOG.debug("Attempting to connect to publication database...")
         path = self.repo.working_dir + "/.rdm/publications.db"
         try:
             self.connection = sqlite.connect(path)
             self.connection.row_factory = sqlite.Row
-            logging.debug("Connected successfully!")
+            _LOG.debug("Connected successfully!")
         except sqlite.Error as e:
-            logging.exception(e)
+            _LOG.exception(e)
         
-        # Set up publication table columns.
-        with self.connection:
-            c = self.connection.cursor()
-            query = "CREATE TABLE publication (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, doi TEXT)"
-            c.execute(query)
+        # If this is 
+        if self.db_exists():
+            _LOG.error("Cannot initialise the publications database since it already exists.")
+        else:
+            # Set up publication table columns.
+            with self.connection:
+                c = self.connection.cursor()
+                query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, title TEXT, description TEXT, doi TEXT)" % PUBLICATIONS_TABLE
+                c.execute(query)
 
         # Disconnect.
         if(self.connection):
             self.connection.close()
-                
+
         return
+
+
+    def add(self, path):
+        return
+
+
+
+    # Helpers
+
+    def db_search_by_path(self, path):
+        try:
+            with self.connection:
+                c = self.connection.cursor()
+                query = "SELECT * FROM %s WHERE path=?" % PUBLICATIONS_TABLE
+                c.execute(query, [path])
+                return c.fetchone()  # This path is a unique absolute path.
+        except sqlite.Error as e:
+            logging.exception(e)
+            return None
+    
+    def db_exists(self):
+        """ Return True if the publications table exists in the database. """
+        with self.connection:
+            c = self.connection.cursor()
+            c.execute("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name=?)", [PUBLICATIONS_TABLE])
+            exists = c.fetchone()
+            if(exists[0] == 1):
+                return True
+            else:
+                return False
 
     def status(self):
         print(self.repo.git.status())
@@ -70,21 +111,33 @@ class RDM:
 if(__name__ == "__main__"):
     # Command line arguments
     parser = argparse.ArgumentParser(prog="git-rdm")
-    parser.add_argument("subcommand", help="The subcommand to 'git rdm'.", action="store", type=str)
     parser.add_argument("-d", "--debug", action="store_true", default=False, help="Enable debugging.")
-    args = parser.parse_args()
+    subparsers = parser.add_subparsers(help="subcommand", dest='subcommand')
+    
+    # git rdm init
+    init_parser = subparsers.add_parser("init", help="Initialise the .rdm control directory and publication database.")
+    
+    # git rdm add
+    add_parser = subparsers.add_parser("add", help="Add a file to the publishing staging area.")
+    add_parser.add_argument("path", help="The path to the file to be published.", action="store", type=str)
+    
+    # Parse all arguments
+    args = parser.parse_known_args()
 
     # Output debugging messages to a file
-    if(args.debug):
+    if(args[0].debug):
         # Get the root logger
-        logger = logging.getLogger()
+        logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)
 
-    
+    # Execute the desired subcommand
     rdm = RDM()
-    if args.subcommand == "init":
+    if args[0].subcommand == "init":
         rdm.init()
-    elif args.subcommand == "status":
+    elif args[0].subcommand == "add":
+        subargs = add_parser.parse_known_args()
+        rdm.add(subargs[0].path)
+    elif args[0].subcommand == "status":
         rdm.status()
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
