@@ -143,6 +143,37 @@ class RDM:
         
         return
 
+    def ls(self):
+        """ List all published files, and files to be published. """
+        
+        self.db_connect()   
+          
+        # List all published files.
+        query = "SELECT * FROM %s WHERE doi IS NOT NULL" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.execute(query)
+            result = c.fetchall()
+            if len(result) > 0:
+                _LOG.info("Published files:")
+                for r in result:
+                    _LOG.info("\t"+r["path"] + " (" + r["doi"] + ")")
+                
+        # List all files staged for publishing.
+        query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.execute(query)
+            result = c.fetchall()
+            if len(result) > 0:
+                _LOG.info("Files staged for publishing:")
+                for r in result:
+                    _LOG.info("\t"+r["path"])
+                
+        self.db_disconnect()
+        
+        return
+        
     def publish(self, service, pid=None):
         """ Publish the desired files. """
 
@@ -256,6 +287,9 @@ if(__name__ == "__main__"):
     rm_parser = subparsers.add_parser("rm", help="Remove a file from the publishing staging area.")
     rm_parser.add_argument("path", help="The path to the file to be removed.", action="store", type=str)
 
+    # 'git rdm ls'
+    ls_parser = subparsers.add_parser("ls", help="List the published files, and files staged for publishing.")
+    
     # 'git rdm publish'
     publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
     publish_parser.add_argument("service", help="The service with which to publish.", action="store", type=str)
@@ -281,6 +315,8 @@ if(__name__ == "__main__"):
         rdm.publish(args.service)
     elif args.subcommand == "status":
         rdm.status()
+    elif args.subcommand == "ls":
+        rdm.ls()
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
         
