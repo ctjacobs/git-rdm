@@ -240,15 +240,12 @@ class RDM:
             return
         
         # Get the minimal amount of metadata needed to publish from the user.
-        parameters = self.get_metadata()
+        parameters = self.get_publication_parameters()
         private = (True if raw_input("Private publication? (y/n): ") == "y" else False)
         
         # Publish to the repository hosting service.
         publisher = Publisher(service=service)
-        #FIXME: Uncomment this later.
-        #pid, doi = publisher.publish_data(parameters, pid=pid, private=private)
-        doi = "10.LOL.10/10.51figshare"
-        pid = str(23423)
+        pid, doi = publisher.publish_data(parameters, pid=pid, private=True)
         
         # Update the publications database by adding the DOIs and publication IDs to the previously-staged files.
         with self.connection:
@@ -269,8 +266,10 @@ class RDM:
         
     # Helpers
 
-    def get_metadata(self):
-        metadata = {}
+    def get_publication_parameters(self):
+        """ Return the parameters required for publication from the user. """
+    
+        parameters = {}
         
         title = raw_input("Title: ")
         description = raw_input("Description: ")
@@ -280,9 +279,12 @@ class RDM:
         else:
             tags = []
         
-        metadata = {"title":title, "description":description, "category":None, "tag_name":tags}
+        # Get the list of file paths.
+        files = self.db_select_unpublished()
         
-        return metadata
+        parameters = {"title":title, "description":description, "category":"Uncategorized", "tag_name":tags, "files":files}
+        
+        return parameters
         
     def db_connect(self):
         _LOG.debug("Attempting to connect to publication database...")
@@ -330,6 +332,20 @@ class RDM:
             c.execute(query)
             return c.fetchall()
 
+
+    def db_select_unpublished(self):
+        """ Return all rows of the database in which the DOI field is NULL. """
+        query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.execute(query)
+            result = c.fetchall()
+            
+        paths = []
+        for r in result:
+            paths.append(str(r["path"]))
+        return paths
+            
 if(__name__ == "__main__"):
     # Command line arguments
     parser = argparse.ArgumentParser(prog="git-rdm")
@@ -369,7 +385,6 @@ if(__name__ == "__main__"):
 
     # Output debugging messages to a file
     if(args.debug):
-        # Get the root logger
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)
 
