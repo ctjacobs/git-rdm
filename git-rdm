@@ -69,7 +69,7 @@ class RDM:
         # Set up publication table columns.
         with self.connection:
             c = self.connection.cursor()
-            query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
+            query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, date TEXT, time TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
             c.execute(query)
 
         # Disconnect.
@@ -110,9 +110,9 @@ class RDM:
                 if len(result) > 0:
                     _LOG.warning("File '%s' has been added already. Skipping..." % os.path.abspath(f))
                 else:
-                    query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL)" % PUBLICATIONS_TABLE
+                    query = "INSERT INTO %s VALUES (NULL, ?, ?, ?, NULL, NULL)" % PUBLICATIONS_TABLE
                     c = self.connection.cursor()
-                    c.execute(query, [os.path.abspath(f)])
+                    c.execute(query, [os.path.abspath(f), str(datetime.datetime.now().date()), str(datetime.datetime.now().time())])
             
         
         #query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
@@ -142,11 +142,21 @@ class RDM:
         
         return
 
-    def ls(self, by_doi=True):
+    def ls(self, path=None, by_doi=True):
         """ List all published files, and files to be published. If a file has multiple DOIs associated with it then they are all listed together. """
         
-        self.db_connect()   
-          
+        self.db_connect()  
+        
+        if path:
+            query = "SELECT * FROM %s WHERE path=?" % PUBLICATIONS_TABLE
+            with self.connection:
+                c = self.connection.cursor()
+                c.execute(query)
+                result = c.fetchall()
+                if len(result) > 0:
+                    _LOG.info(result["path"])
+                    
+                
         # List all published files.
         if by_doi:
             query = "SELECT * FROM %s WHERE doi IS NOT NULL ORDER BY doi" % PUBLICATIONS_TABLE
@@ -172,7 +182,7 @@ class RDM:
                         publication_list = list(publication_iter)
                         _LOG.info("\t"+ path)
                         for p in publication_list:
-                            _LOG.info("\t\t" + str(p[3]))
+                            _LOG.info("\t\t" + str(p[-1]))
                 
         # List all files staged for publishing.
         query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
