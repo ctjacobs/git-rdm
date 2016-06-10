@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-#!/usr/bin/env python
-
 import os, os.path, sys
+import itertools
 import argparse
 import git
 import logging
@@ -104,7 +103,7 @@ class RDM:
         # Check that the file has not been added for publication already. If not, then add it to the database.
         for f in paths:
             with self.connection:
-                query = "SELECT * FROM %s WHERE path=? AND doi is NULL" % PUBLICATIONS_TABLE
+                query = "SELECT * FROM %s WHERE path=? AND doi IS NULL" % PUBLICATIONS_TABLE
                 c = self.connection.cursor()
                 c.execute(query, [os.path.abspath(f)])
                 result = c.fetchall()
@@ -134,7 +133,7 @@ class RDM:
         else:
             paths = [path]        
         
-        query = "DELETE FROM %s WHERE path=?" % PUBLICATIONS_TABLE
+        query = "DELETE FROM %s WHERE path=? AND doi IS NULL" % PUBLICATIONS_TABLE
         with self.connection:
             c = self.connection.cursor()
             c.executemany(query, paths)
@@ -143,21 +142,37 @@ class RDM:
         
         return
 
-    def ls(self):
-        """ List all published files, and files to be published. """
+    def ls(self, by_doi=True):
+        """ List all published files, and files to be published. If a file has multiple DOIs associated with it then they are all listed together. """
         
         self.db_connect()   
           
         # List all published files.
-        query = "SELECT * FROM %s WHERE doi IS NOT NULL" % PUBLICATIONS_TABLE
+        if by_doi:
+            query = "SELECT * FROM %s WHERE doi IS NOT NULL ORDER BY doi" % PUBLICATIONS_TABLE
+        else:
+            query = "SELECT * FROM %s WHERE doi IS NOT NULL ORDER BY path" % PUBLICATIONS_TABLE
+            
         with self.connection:
             c = self.connection.cursor()
             c.execute(query)
             result = c.fetchall()
+            
             if len(result) > 0:
                 _LOG.info("Published files:")
-                for r in result:
-                    _LOG.info("\t"+r["path"] + " (" + r["doi"] + ")")
+                
+                if by_doi:
+                    for doi, publication_iter in itertools.groupby(result, key=lambda r: r[3]):
+                        publication_list = list(publication_iter)
+                        _LOG.info("\t"+ doi)
+                        for p in publication_list:
+                            _LOG.info("\t\t" + str(p[1]))
+                else:
+                    for path, publication_iter in itertools.groupby(result, key=lambda r: r[1]):
+                        publication_list = list(publication_iter)
+                        _LOG.info("\t"+ path)
+                        for p in publication_list:
+                            _LOG.info("\t\t" + str(p[3]))
                 
         # List all files staged for publishing.
         query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
@@ -207,7 +222,7 @@ class RDM:
         private = True #TODO: Get the user to define this.
         self.publisher = Publisher(service=service)
         #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
-        doi = "10.LOL.10/10.50figshare"
+        doi = "10.LOL.10/10.51figshare"
         pid = str(23423)
         
         # Update the publications database by adding the DOIs and publication IDs to the previously-staged files.
@@ -289,6 +304,7 @@ if(__name__ == "__main__"):
 
     # 'git rdm ls'
     ls_parser = subparsers.add_parser("ls", help="List the published files, and files staged for publishing.")
+    ls_parser.add_argument("--by-doi", help="Group files by DOI.", action="store_true", default=False, dest="by_doi")
     
     # 'git rdm publish'
     publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
@@ -313,7 +329,7 @@ if(__name__ == "__main__"):
     elif args.subcommand == "rm":
         rdm.rm(args.path)
     elif args.subcommand == "ls":
-        rdm.ls()
+        rdm.ls(by_doi=args.by_doi)
     elif args.subcommand == "publish":
         rdm.publish(service=args.service, pid=args.pid)
     elif args.subcommand == "status":
