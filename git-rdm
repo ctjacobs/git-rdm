@@ -199,6 +199,19 @@ class RDM:
         self.db_disconnect()
         
         return
+    
+    def show(self, service, pid):
+        """ Show details of a particular publication. """
+        publisher = Publisher(service=service)
+        
+        if service == "figshare":
+            _LOG.info(publisher.figshare.get_article_details(article_id=pid))
+        elif service == "zenodo":
+            _LOG.info(publisher.zenodo.retrieve_deposition(deposition_id=int(pid)))
+        else:
+            _LOG.error("Unknown service '%s'" % service)
+        return        
+        
         
     def publish(self, service, pid=None):
         """ Publish the desired files. """
@@ -231,9 +244,9 @@ class RDM:
         private = (True if raw_input("Private publication? (y/n): ") == "y" else False)
         
         # Publish to the repository hosting service.
-        self.publisher = Publisher(service=service)
+        publisher = Publisher(service=service)
         #FIXME: Uncomment this later.
-        #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
+        #pid, doi = publisher.publish_data(parameters, pid=pid, private=private)
         doi = "10.LOL.10/10.51figshare"
         pid = str(23423)
         
@@ -345,6 +358,11 @@ if(__name__ == "__main__"):
     publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
     publish_parser.add_argument("service", help="The service with which to publish.", action="store", type=str)
     publish_parser.add_argument("--pid", required=False, help="The ID of an existing publication. This will result in a new version of the publication being created. The DOI will stay the same.", action="store", default=None, type=str)
+
+    # 'git rdm show'
+    show_parser = subparsers.add_parser("show", help="Show details about a particular publication.")
+    show_parser.add_argument("service", help="The hosting service of the publication.", action="store", type=str)
+    show_parser.add_argument("pid", help="The ID of the publication.", action="store", type=str)
     
     # Parse all arguments
     args = parser.parse_args()
@@ -367,6 +385,8 @@ if(__name__ == "__main__"):
         rdm.ls(path=args.path, by_doi=args.by_doi)
     elif args.subcommand == "publish":
         rdm.publish(service=args.service, pid=args.pid)
+    elif args.subcommand == "show":
+        rdm.show(service=args.service, pid=args.pid)
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
         
