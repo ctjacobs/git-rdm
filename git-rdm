@@ -8,6 +8,7 @@ import argparse
 import git
 import logging
 import sqlite3 as sqlite
+import datetime
 
 _LOG = logging.getLogger(__name__)
 _HANDLER = logging.StreamHandler()
@@ -143,15 +144,19 @@ class RDM:
         
         self.db_connect()  
         
+        # If a path is provided, then specify all the publications/DOIs associated with that path.
         if path:
-            query = "SELECT * FROM %s WHERE path=?" % PUBLICATIONS_TABLE
+            path = os.path.abspath(path)  # Get the absolute path
+            query = "SELECT * FROM %s WHERE path=? AND doi IS NOT NULL" % PUBLICATIONS_TABLE
             with self.connection:
                 c = self.connection.cursor()
-                c.execute(query)
+                c.execute(query, [path])
                 result = c.fetchall()
                 if len(result) > 0:
-                    _LOG.info(result["path"])
-                    
+                    _LOG.info(path)
+                    for r in result:
+                        _LOG.info("\t" + str(r["doi"]) + " (" + str(r["date"]) + " @ " + str(r["time"]).split(".")[0] + ")")
+            return
                 
         # List all published files.
         if by_doi:
@@ -178,7 +183,7 @@ class RDM:
                         publication_list = list(publication_iter)
                         _LOG.info("\t"+ path)
                         for p in publication_list:
-                            _LOG.info("\t\t" + str(p[-1]))
+                            _LOG.info("\t\t" + str(p[len(p)-1]) + " (" + str(p[2]) + " @ " + str(p[3]).split(".")[0] + ")")
                 
         # List all files staged for publishing.
         query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
@@ -221,12 +226,13 @@ class RDM:
             _LOG.error("Uncomitted changes exist in the repository. Please commit these changes before trying to publish any files.")
             return
         
-        # TODO: Get the minimal amount of metadata needed to publish from the user.
-        parameters = {}          
+        # Get the minimal amount of metadata needed to publish from the user.
+        parameters = self.get_metadata()
+        private = (True if raw_input("Private publication? (y/n): ") == "y" else False)
         
         # Publish to the repository hosting service.
-        private = True #TODO: Get the user to define this.
         self.publisher = Publisher(service=service)
+        #FIXME: Uncomment this later.
         #pid, doi = self.publisher.publish_data(parameters, pid=pid, private=private)
         doi = "10.LOL.10/10.51figshare"
         pid = str(23423)
@@ -244,9 +250,19 @@ class RDM:
         return
         
         
-        
     # Helpers
 
+    def get_metadata(self):
+        metadata = {}
+        
+        title = raw_input("Title: ")
+        description = raw_input("Description: ")
+        tags = eval(raw_input("Tags/keywords (in list format [\"a\", \"b\", \"c\"]): "))
+        
+        metadata = {"title":title, "description":description, "category":None, "tag_name":tags}
+        
+        return metadata
+        
     def db_connect(self):
         _LOG.debug("Attempting to connect to publication database...")
         path = self.repo.working_dir + "/.rdm/publications.db"
@@ -314,6 +330,7 @@ if(__name__ == "__main__"):
 
     # 'git rdm ls'
     ls_parser = subparsers.add_parser("ls", help="List the published files, and files staged for publishing.")
+    ls_parser.add_argument("--path", required=False, help="The path to the file to list.", action="store", type=str, default=None)
     ls_parser.add_argument("--by-doi", help="Group files by DOI.", action="store_true", default=False, dest="by_doi")
     
     # 'git rdm publish'
@@ -339,7 +356,7 @@ if(__name__ == "__main__"):
     elif args.subcommand == "rm":
         rdm.rm(args.path)
     elif args.subcommand == "ls":
-        rdm.ls(by_doi=args.by_doi)
+        rdm.ls(path=args.path, by_doi=args.by_doi)
     elif args.subcommand == "publish":
         rdm.publish(service=args.service, pid=args.pid)
     else:
