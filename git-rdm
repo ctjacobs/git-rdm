@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Copyright (C) June 2016 Christian T. Jacobs
+
 import os, os.path, sys
 import itertools
 import argparse
@@ -114,12 +116,6 @@ class RDM:
                     c = self.connection.cursor()
                     c.execute(query, [os.path.abspath(f), str(datetime.datetime.now().date()), str(datetime.datetime.now().time())])
             
-        
-        #query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
-        #with self.connection:
-        #    c = self.connection.cursor()
-        #    c.execute(query)
-        #    print c.fetchone()
         self.db_disconnect()
         return
 
@@ -289,9 +285,13 @@ class RDM:
             else:
                 return False
 
-    def status(self):
-        print(self.repo.git.status())
-
+    def db_select_all(self):
+        """ Return all rows of the database. """
+        query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
+        with self.connection:
+            c = self.connection.cursor()
+            c.execute(query)
+            return c.fetchall()
 
 if(__name__ == "__main__"):
     # Command line arguments
@@ -342,8 +342,6 @@ if(__name__ == "__main__"):
         rdm.ls(by_doi=args.by_doi)
     elif args.subcommand == "publish":
         rdm.publish(service=args.service, pid=args.pid)
-    elif args.subcommand == "status":
-        rdm.status()
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
         
