@@ -113,9 +113,9 @@ class RDM:
                 if len(result) > 0:
                     _LOG.warning("File '%s' has been added already. Skipping..." % os.path.abspath(f))
                 else:
-                    query = "INSERT INTO %s VALUES (NULL, ?, ?, ?, NULL, NULL)" % PUBLICATIONS_TABLE
+                    query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL, NULL, NULL)" % PUBLICATIONS_TABLE
                     c = self.connection.cursor()
-                    c.execute(query, [os.path.abspath(f), str(datetime.datetime.now().date()), str(datetime.datetime.now().time())])
+                    c.execute(query, [os.path.abspath(f)])
             
         self.db_disconnect()
         return
@@ -244,6 +244,10 @@ class RDM:
             c.execute(query, [doi])
             query = "UPDATE %s SET pid=? WHERE pid IS NULL" % (PUBLICATIONS_TABLE)
             c.execute(query, [pid])
+            query = "UPDATE %s SET date=? WHERE date IS NULL" % (PUBLICATIONS_TABLE)
+            c.execute(query, [str(datetime.datetime.now().date())])
+            query = "UPDATE %s SET time=? WHERE time IS NULL" % (PUBLICATIONS_TABLE)
+            c.execute(query, [str(datetime.datetime.now().time())])
           
         self.db_disconnect()
         
@@ -257,7 +261,11 @@ class RDM:
         
         title = raw_input("Title: ")
         description = raw_input("Description: ")
-        tags = eval(raw_input("Tags/keywords (in list format [\"a\", \"b\", \"c\"]): "))
+        tags = raw_input("Tags/keywords (in list format [\"a\", \"b\", \"c\"]): ")
+        if tags:
+            tags = eval(tags)
+        else:
+            tags = []
         
         metadata = {"title":title, "description":description, "category":None, "tag_name":tags}
         
