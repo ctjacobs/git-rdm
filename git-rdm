@@ -19,7 +19,6 @@ del(_HANDLER)
 _LOG.setLevel(logging.INFO)
 
 try:
-    import pyrdm
     from pyrdm.publisher import Publisher
 except ImportError:
     _LOG.exception("Could not import the PyRDM library necessary for research data management.")
