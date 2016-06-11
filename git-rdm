@@ -9,6 +9,7 @@ import git
 import logging
 import sqlite3 as sqlite
 import datetime
+import glob
 
 _LOG = logging.getLogger(__name__)
 _HANDLER = logging.StreamHandler()
@@ -81,59 +82,55 @@ class RDM:
         return
 
 
-    def add(self, path):
+    def add(self, paths):
         """ Add a desired file to the 'publication' staging area. """
         
         self.db_connect()
 
-        # Convert argument to a list of lists.
-        if isinstance(path, str):
-            paths = [os.path.abspath(path)]
-        else:
-            paths = path
-            
+        # Expand and get the absolute paths
+        expanded_paths = self.expand_paths(paths)
+
         # Check that the file/files being added is/are actually under version control.
-        for f in paths:
+        for f in expanded_paths:
             found = False
-            for b in self.repo.tree().blobs:
-                if b.abspath == os.path.abspath(f):
+            for b in self.repo.tree().traverse():
+                if b.abspath == f:
                     found = True
                     break
             if not found:
-                _LOG.error("Could not add file '%s' for publishing because it is not under Git version control." % f)
-                return
+                _LOG.error("Could not add file '%s' for publishing because it is not under Git version control. Skipping..." % f)
+                continue
         
         # Check that the file has not been added for publication already. If not, then add it to the database.
-        for f in paths:
+        for f in expanded_paths:
             with self.connection:
                 query = "SELECT * FROM %s WHERE path=? AND doi IS NULL" % PUBLICATIONS_TABLE
                 c = self.connection.cursor()
-                c.execute(query, [os.path.abspath(f)])
+                c.execute(query, [f])
                 result = c.fetchall()
                 if len(result) > 0:
                     _LOG.warning("File '%s' has been added already. Skipping..." % os.path.abspath(f))
                 else:
                     query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL, NULL, NULL)" % PUBLICATIONS_TABLE
                     c = self.connection.cursor()
-                    c.execute(query, [os.path.abspath(f)])
+                    c.execute(query, [f])
             
         self.db_disconnect()
         return
 
-    def rm(self, path):
+    def rm(self, paths):
         """ Remove a desired file from the 'publication' staging area. """
         
         self.db_connect()
-        
-        if isinstance(path, str):
-            paths = [[os.path.abspath(path)]]
-        else:
-            paths = [path]        
+
+        # Expand and get the absolute paths
+        expanded_paths = self.expand_paths(paths)
         
         query = "DELETE FROM %s WHERE path=? AND doi IS NULL" % PUBLICATIONS_TABLE
         with self.connection:
             c = self.connection.cursor()
-            c.executemany(query, paths)
+            for f in expanded_paths:
+                c.execute(query, [f])
 
         self.db_disconnect()
         
@@ -345,7 +342,23 @@ class RDM:
         for r in result:
             paths.append(str(r["path"]))
         return paths
-            
+
+    def expand_paths(self, paths):
+        # Expand and get the absolute paths
+        expanded_paths = []
+        if isinstance(paths, str):  # A single path
+            expanded = glob.glob(paths)
+            for e in expanded:
+                expanded_paths.append(os.path.abspath(e))
+        elif isinstance(paths, list):  # Multiple path
+            for p in paths:
+                expanded = glob.glob(p)
+                for e in expanded:
+                    expanded_paths.append(os.path.abspath(e))
+        else:
+            _LOG.exception("Unknown input for the 'add' function.")
+        return expanded_paths
+        
 if(__name__ == "__main__"):
     # Command line arguments
     parser = argparse.ArgumentParser(prog="git-rdm")
@@ -359,11 +372,11 @@ if(__name__ == "__main__"):
     
     # 'git rdm add'
     add_parser = subparsers.add_parser("add", help="Add a file to the publishing staging area.")
-    add_parser.add_argument("path", help="The path to the file to be added.", action="store", type=str)
+    add_parser.add_argument("path", nargs='+', help="The path(s) to the file(s) to be added.", action="store", type=str)
 
     # 'git rdm rm'
     rm_parser = subparsers.add_parser("rm", help="Remove a file from the publishing staging area.")
-    rm_parser.add_argument("path", help="The path to the file to be removed.", action="store", type=str)
+    rm_parser.add_argument("path", nargs='+', help="The path(s) to the file(s) to be removed.", action="store", type=str)
 
     # 'git rdm ls'
     ls_parser = subparsers.add_parser("ls", help="List the published files, and files staged for publishing.")
