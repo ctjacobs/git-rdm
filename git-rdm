@@ -72,7 +72,7 @@ class GitRDM:
         # Set up publication table columns.
         with self.connection:
             c = self.connection.cursor()
-            query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, date TEXT, time TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
+            query = "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT, date TEXT, time TEXT, sha TEXT, pid TEXT, doi TEXT)" % PUBLICATIONS_TABLE
             c.execute(query)
 
         # Disconnect.
@@ -119,7 +119,7 @@ class GitRDM:
                 if len(result) > 0:
                     _LOG.warning("File '%s' has been added already. Skipping..." % os.path.abspath(f))
                 else:
-                    query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL, NULL, NULL)" % PUBLICATIONS_TABLE
+                    query = "INSERT INTO %s VALUES (NULL, ?, NULL, NULL, NULL, NULL, NULL)" % PUBLICATIONS_TABLE
                     c = self.connection.cursor()
                     c.execute(query, [f])
             
@@ -167,7 +167,7 @@ class GitRDM:
                 if len(result) > 0:
                     _LOG.info(path)
                     for r in result:
-                        _LOG.info("\t" + str(r["doi"]) + " (" + str(r["date"]) + " @ " + str(r["time"]).split(".")[0] + ")")
+                        _LOG.info("\t" + str(r["doi"]) + " (" + str(r["date"]) + " @ " + str(r["time"]).split(".")[0] + ", revision '%s')" % r["sha"])
             return
                 
         # List all published files.
@@ -185,17 +185,17 @@ class GitRDM:
                 _LOG.info("Published files:")
                 
                 if by_doi:
-                    for doi, publication_iter in itertools.groupby(result, key=lambda r: r[3]):
+                    for doi, publication_iter in itertools.groupby(result, key=lambda r: r[len(r)-1]):
                         publication_list = list(publication_iter)
-                        _LOG.info("\t"+ doi)
+                        _LOG.info("\t" + doi)
                         for p in publication_list:
-                            _LOG.info("\t\t" + str(p[1]))
+                            _LOG.info("\t\t" + str(p[1]) + " (" + str(p[2]) + " @ " + str(p[3]).split(".")[0] + ", revision '%s')" % p[4])
                 else:
                     for path, publication_iter in itertools.groupby(result, key=lambda r: r[1]):
                         publication_list = list(publication_iter)
-                        _LOG.info("\t"+ path)
+                        _LOG.info("\t" + path)
                         for p in publication_list:
-                            _LOG.info("\t\t" + str(p[len(p)-1]) + " (" + str(p[2]) + " @ " + str(p[3]).split(".")[0] + ")")
+                            _LOG.info("\t\t" + str(p[len(p)-1]) + " (" + str(p[2]) + " @ " + str(p[3]).split(".")[0] + ", revision '%s')" % p[4])
                 
         # List all files staged for publishing.
         query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
@@ -288,6 +288,8 @@ class GitRDM:
             c.execute(query, [str(datetime.datetime.now().date())])
             query = "UPDATE %s SET time=? WHERE time IS NULL" % (PUBLICATIONS_TABLE)
             c.execute(query, [str(datetime.datetime.now().time())])
+            query = "UPDATE %s SET sha=? WHERE sha IS NULL" % (PUBLICATIONS_TABLE)
+            c.execute(query, [str(self.repo.head.object.hexsha)])
           
         self.db_disconnect()
         

@@ -37,6 +37,8 @@ The Git-RDM plugin comes with several subcommands. The following subsections dem
 
 ### git rdm add
 
+The file being added must be under Git version control, otherwise Git-RDM will refuse to publish it.
+
 ### git rdm rm
 
 ### git rdm ls
