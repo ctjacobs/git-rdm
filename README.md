@@ -4,7 +4,7 @@ Git-RDM is a Research Data Management (RDM) plugin for the [Git](https://git-scm
 
 Much like the standard Git commands, Git-RDM allows users to add/remove data files within a 'publication staging area'. When ready, users can readily publish these staged files to an online data repository service such as Figshare and Zenodo via the command line. Details of the files and their associated publication(s) are then recorded in a local database, including the specific Git revision (in the form of a SHA-1 hash) and the DOI, such that a full history of data publication is maintained.
 
-# Dependencies
+## Dependencies
 
 Git-RDM mostly relies on the standard Python modules and, of course, Git. However, two extra modules are needed:
 
@@ -17,7 +17,7 @@ Both of these dependencies can be installed via `pip` using
 sudo pip install -r requirements.txt
 ```
 
-# Installing
+## Installing
 
 A system-wide installation can be achieved by running
 
@@ -76,14 +76,14 @@ Note that only [Figshare](https://figshare.com/) and [Zenodo](http://zenodo.org/
 
 ### git rdm show
 
-The full publication record maintained by the data repository service can be shown using `git rdm show`. For example, for the publication whose DOI is `????`, we have
+The full publication record maintained by the data repository service can be shown using `git rdm show`. For example, for the publication whose Figshare publication ID is ?????? and DOI is `????`, we have
 
 ```
 ```
 
-# License
+## License
 ???????????
 
-# Contact
+## Contact
 
-Please send any questions or comments about Git-RDM via email to [Christian Jacobs](http://christianjacobs.uk) at <christian@christianjacobs.uk>. Any bugs should be reported via the project's [issue tracker](http://github.com/ctjacobs/git-rdm/issues).
+Please send any questions or comments about Git-RDM via email to [Christian Jacobs](http://christianjacobs.uk) at <christian@christianjacobs.uk>. Any bugs should be reported using the project's [issue tracker](http://github.com/ctjacobs/git-rdm/issues). Contributions are welcome and should be made via a pull request.
