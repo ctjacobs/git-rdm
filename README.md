@@ -25,28 +25,7 @@ A system-wide installation can be achieved by running
 sudo python setup.py install
 ```
 
-Once Git-RDM is installed, Git will automatically detect the plugin. The 'rdm' subcommands (described in the usage section below) can then be used; run `git rdm -h` at the command line to see a list of these:
-
-```
-christian@elevate ~/git-rdm $ git rdm -h
-usage: git-rdm [-h] [-d] {init,add,rm,ls,publish,show} ...
-
-positional arguments:
-  {init,add,rm,ls,publish,show}
-                        The subcommand of 'git rdm'.
-    init                Initialise the .rdm control directory and publication
-                        database.
-    add                 Add a file to the publishing staging area.
-    rm                  Remove a file from the publishing staging area.
-    ls                  List the published files, and files staged for
-                        publishing.
-    publish             Publish the files in the publishing staging area.
-    show                Show details about a particular publication.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -d, --debug           Enable debugging.
-```
+Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the rdm subcommands described in the Usage section below.
 
 ## Usage
 
