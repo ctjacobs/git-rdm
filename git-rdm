@@ -304,7 +304,7 @@ class GitRDM:
                 
         # Publish to the repository hosting service.
         publisher = Publisher(service=service)
-        pid, doi = publisher.publish_data(parameters, pid=pid, private=True)
+        pid, doi = publisher.publish_data(parameters, pid=pid, private=private)
         
         # Update the publications database by adding the DOIs and publication IDs to the previously-staged files.
         with self.connection:
