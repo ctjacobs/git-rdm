@@ -68,7 +68,7 @@ class GitRDM:
                 _LOG.info("Not overwriting.")
                 return
             else:
-                _LOG.info("Unknown response '%s'. Not overwriting." % response)
+                _LOG.error("Unknown response '%s'. Not overwriting." % response)
                 return
 
         # Set up publication table columns.
@@ -262,9 +262,19 @@ class GitRDM:
             return
         
         # Get the minimal amount of metadata needed to publish from the user.
+        response = raw_input("Private publication? (y/n): ")
+        if response == "y" or response == "Y":
+            _LOG.info("Publishing as a private repository...")
+            private = True
+        elif response == "n" or response == "N":
+            _LOG.info("Publishing as a public repository...")
+            private = False
+        else:
+            _LOG.error("Unknown response '%s'. Not publishing." % response)
+            return
+
         parameters = self.get_publication_parameters()
-        private = (True if raw_input("Private publication? (y/n): ") == "y" else False)
-        
+                
         # Publish to the repository hosting service.
         publisher = Publisher(service=service)
         pid, doi = publisher.publish_data(parameters, pid=pid, private=True)
