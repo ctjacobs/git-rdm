@@ -1,0 +1,2 @@
+GitPython
+-e git+https://github.com/pyrdm/pyrdm.git#egg=pyrdm
