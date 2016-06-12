@@ -127,7 +127,7 @@ git-rdm INFO: 		/home/christian/test/test2.txt (2016-06-13 @ 00:29:03, revision 
 
 ### git rdm show
 
-The full publication record maintained by the data repository service can be shown using `git rdm show`. For example, for the publication whose Figshare publication ID is 3428222 and DOI is `10.6084/m9.figshare.3428222`, the (truncated) output is:
+The full publication record maintained by the data repository service can be shown using `git rdm show`. It expects two arguments: the name of the hosting service (`figshare` or `zenodo`) and the publication ID. For example, for the publication whose Figshare publication ID is 3428222 (and DOI is `10.6084/m9.figshare.3428222`), the (truncated) output is:
 
 ```
 christian@elevate ~/test $ git rdm show figshare 3428222
