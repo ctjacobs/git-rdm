@@ -166,6 +166,6 @@ This software is released under the MIT license. See the file called `LICENSE` f
 ## Contact
 Please send any questions or comments about Git-RDM via email to [Christian Jacobs](http://christianjacobs.uk) at <christian@christianjacobs.uk>.
 
-Any bugs should be reported using the project's [issue tracker](http://github.com/ctjacobs/git-rdm/issues). If possible, please run Git-RDM with debugging enabled using the `-d` flag after `git rdm` (e.g. `git rdm -d publish figshare`).
+Any bugs should be reported using the project's [issue tracker](http://github.com/ctjacobs/git-rdm/issues). If possible, please run Git-RDM with debugging enabled using the `-d` flag after `git rdm` (e.g. `git rdm -d publish figshare`) and provide the full output.
 
 Contributions are welcome and should be made via a pull request.
