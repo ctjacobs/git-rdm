@@ -224,15 +224,18 @@ class GitRDM:
         
         if service == "figshare":
             publication_details = publisher.figshare.get_article_details(article_id=pid)
-            try:
-                _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
-            except:
-                _LOG.info(publication_details)
-            
         elif service == "zenodo":
-            _LOG.info(publisher.zenodo.retrieve_deposition(deposition_id=int(pid)))
+            publication_details = publisher.zenodo.retrieve_deposition(deposition_id=int(pid))
         else:
             _LOG.error("Unknown service '%s'" % service)
+            return
+        
+        # Pretty print
+        try:
+                _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
+        except:
+            _LOG.info(publication_details)
+            
         return        
         
     def publish(self, service, pid=None):
