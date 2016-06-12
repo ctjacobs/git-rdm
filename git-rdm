@@ -28,9 +28,7 @@ PUBLICATIONS_TABLE = "publications"
 
 class GitRDM:
 
-
     """ The Git-RDM plugin for the Git version control system. """
-
 
     def __init__(self):
         """ Open the Git repository. """
