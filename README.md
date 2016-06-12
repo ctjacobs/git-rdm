@@ -2,7 +2,7 @@
 
 Git-RDM is a Research Data Management (RDM) plugin for the [Git](https://git-scm.com/) version control system.
 
-Much like the standard Git commands, Git-RDM allows users to add/rm files to a 'publication staging area'. When ready, users can readily publish these staged files to a repository hosting service via the command line. Details of the files and their associated publication(s) are recorded in a local database, including the specific Git revision (in the form of a SHA-1 hash) and the DOI, such that a full history of data publication is maintained.
+Much like the standard Git commands, Git-RDM allows users to add/remove files within a 'publication staging area'. When ready, users can readily publish these staged files to a data repository service such as Figshare and Zenodo via the command line. Details of the files and their associated publication(s) are then recorded in a local database, including the specific Git revision (in the form of a SHA-1 hash) and the DOI, such that a full history of data publication is maintained.
 
 # Dependencies
 
@@ -25,7 +25,7 @@ A system-wide installation can be achieved by running
 sudo python setup.py install
 ```
 
-Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the rdm subcommands described in the Usage section below.
+Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the RDM-related subcommands described in the Usage section below.
 
 ## Usage
 
@@ -33,7 +33,7 @@ The Git-RDM plugin comes with several subcommands. The following subsections dem
 
 ### git rdm init
 
-
+This command is similar to the `git init` command which initialises a new repository and creates the `.git` control directory. A new directory `.rdm` is created which holds a database file called `publications.db`. It is in this file that all data publication information is stored.
 
 ### git rdm add
 

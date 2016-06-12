@@ -224,7 +224,11 @@ class GitRDM:
         
         if service == "figshare":
             publication_details = publisher.figshare.get_article_details(article_id=pid)
-            _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
+            try:
+                _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
+            except:
+                _LOG.info(publication_details)
+            
         elif service == "zenodo":
             _LOG.info(publisher.zenodo.retrieve_deposition(deposition_id=int(pid)))
         else:
@@ -331,7 +335,8 @@ class GitRDM:
             self.connection.row_factory = sqlite.Row
             _LOG.debug("Connected successfully!")
         except sqlite.Error as e:
-            _LOG.exception(e)
+            _LOG.exception("Could not connect to the publication database. Check read permissions? Check that the .rdm directory exists? If it doesn't, run the 'git rdm init' command.")
+            sys.exit(1)
         return
 
     def db_disconnect(self):
