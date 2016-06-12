@@ -37,6 +37,7 @@ class GitRDM:
         
         try:
             self.repo = git.Repo(".", search_parent_directories=True)
+            _LOG.debug("The Git working directory is: %s" % self.repo.working_dir)
         except git.InvalidGitRepositoryError:
             _LOG.exception("Not in a Git version controlled repository.")
             sys.exit(1)
@@ -47,8 +48,9 @@ class GitRDM:
         """ Initialise the RDM control directory and set up the SQL database of published files (and files staged for publication). """
         
         # Create the RDM control directory if it doesn't already exist.
-        if not os.path.exists(".rdm"):
-            os.makedirs(".rdm")
+        rdm_control_directory = self.repo.working_dir + "/.rdm"
+        if not os.path.exists(rdm_control_directory):
+            os.makedirs(rdm_control_directory)
         
         # Set up the SQLite database.
         self.db_connect()
