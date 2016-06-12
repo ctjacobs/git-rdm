@@ -58,16 +58,17 @@ class GitRDM:
         # If this file already exists, then skip this step.
         if self.db_exists():
             response = raw_input("The publications database already exists. Do you want to overwrite it? (y/n)\n")
-            if response == "y":
-                overwrite = True
+            if response == "y" or response == "Y":
                 _LOG.info("Overwriting...")
                 with self.connection:
                     c = self.connection.cursor()
                     query = "DROP TABLE %s" % PUBLICATIONS_TABLE
                     c.execute(query)
-            else:
-                overwrite = False
+            elif response == "n" or response == "N":
                 _LOG.info("Not overwriting.")
+                return
+            else:
+                _LOG.info("Unknown response '%s'. Not overwriting." % response)
                 return
 
         # Set up publication table columns.
@@ -91,8 +92,10 @@ class GitRDM:
 
         # Expand and get the absolute paths
         expanded_paths = self.expand_paths(paths)
-
+        _LOG.debug("Expanded paths: %s", str(expanded_paths))
+        
         # Check that the file/files being added is/are actually under version control.
+        skipped = []
         for f in expanded_paths:
             found = False
             for b in self.repo.tree().traverse():
@@ -101,7 +104,12 @@ class GitRDM:
                     break
             if not found:
                 _LOG.error("Could not add file '%s' for publishing because it is not under Git version control. Skipping..." % f)
+                skipped.append(f)
                 continue
+        
+        # Remove the skipped files
+        expanded_paths = list(set(expanded_paths).difference(skipped))
+        _LOG.debug("Expanded paths after skipped files removed: %s", str(expanded_paths))
         
         # Check that the file has not been added for publication already. If not, then add it to the database.
         for f in expanded_paths:
