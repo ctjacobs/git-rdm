@@ -2,7 +2,7 @@
 
 Git-RDM is a Research Data Management (RDM) plugin for the [Git](https://git-scm.com/) version control system.
 
-Much like the standard Git commands, Git-RDM allows users to add/rm files in a 'publication staging area'. When ready, users publish these staged files to a repository hosting service; currently only [Figshare]() and [Zenodo]() are supported.
+Much like the standard Git commands, Git-RDM allows users to add/rm files in a 'publication staging area'. When ready, users publish these staged files to a repository hosting service; currently only [Figshare](https://figshare.com/) and [Zenodo](http://zenodo.org/) are supported.
 
 ## Commands
 
@@ -23,7 +23,11 @@ sudo pip install -r requirements.txt
 
 # Installing
 
+A system-wide installation can be achieved by running
 
+```
+sudo python setup.py install
+```
 
 # Contact
 
