@@ -26,11 +26,15 @@ except ImportError:
 
 PUBLICATIONS_TABLE = "publications"
 
-class RDM:
-    
+class GitRDM:
+
+
+    """ The Git-RDM plugin for the Git version control system. """
+
+
     def __init__(self):
-    
-        # Open the Git repository.
+        """ Open the Git repository. """
+        
         try:
             self.repo = git.Repo(".")
         except git.InvalidGitRepositoryError:
@@ -38,14 +42,9 @@ class RDM:
             sys.exit(1)
 
         return
-        
-    
-    
-    # git-rdm subcommands
 
-    
     def initialise(self):
-        """ Initialise the RDM control directory and set up the SQL database of published files. """
+        """ Initialise the RDM control directory and set up the SQL database of published files (and files staged for publication). """
         
         # Create the RDM control directory if it doesn't already exist.
         if not os.path.exists(".rdm"):
@@ -80,9 +79,11 @@ class RDM:
 
         return
 
-
     def add(self, paths):
-        """ Add a desired file to the 'publication' staging area. """
+        """ Add a desired file to the 'publication' staging area.
+        
+        arg paths: A string, or list of strings, of absolute or relative paths to files to be added.
+        """
         
         self.db_connect()
 
@@ -118,7 +119,10 @@ class RDM:
         return
 
     def rm(self, paths):
-        """ Remove a desired file from the 'publication' staging area. """
+        """ Remove a desired file from the 'publication' staging area.
+        
+        :arg paths: A string, or list of strings, of absolute or relative paths to files to be removed.
+        """
         
         self.db_connect()
 
@@ -136,7 +140,11 @@ class RDM:
         return
 
     def ls(self, path=None, by_doi=True):
-        """ List all published files, and files to be published. If a file has multiple DOIs associated with it then they are all listed together. """
+        """ List all published files, and files to be published. If a file has multiple DOIs associated with it then they are all listed together.
+        
+        :arg path: The relative/absolute path to the file to be listed.
+        :arg bool by_doi: List the files by DOI first (i.e. each DOI will be listed at the top level, with names of the files associated with that DOI underneath).
+        """
         
         self.db_connect()  
         
@@ -197,7 +205,12 @@ class RDM:
         return
     
     def show(self, service, pid):
-        """ Show details of a particular publication. """
+        """ Show details of a particular publication.
+        
+        :arg str service: The service with which the repository is hosted.
+        :arg pid: The publication ID.
+        """
+        
         publisher = Publisher(service=service)
         
         if service == "figshare":
@@ -208,9 +221,12 @@ class RDM:
             _LOG.error("Unknown service '%s'" % service)
         return        
         
-        
     def publish(self, service, pid=None):
-        """ Publish the desired files. """
+        """ Publish the desired files.
+        
+        :arg str service: The repository hosting service with which to publish the files.
+        :arg pid: An (optional) existing publication ID. If this is not None, then a new version of the repository will be created.
+        """
 
         self.db_connect()
 
@@ -258,12 +274,13 @@ class RDM:
         self.db_disconnect()
         
         return
-        
-        
-    # Helpers
 
     def get_publication_parameters(self):
-        """ Return the parameters required for publication from the user. """
+        """ Return the parameters required for publication from the user.
+        
+        :rtype: dict
+        :returns: The parameters required for publication.
+        """
     
         parameters = {}
         
@@ -283,6 +300,8 @@ class RDM:
         return parameters
         
     def db_connect(self):
+        """ Create a connection to the publications database. """
+    
         _LOG.debug("Attempting to connect to publication database...")
         path = self.repo.working_dir + "/.rdm/publications.db"
         try:
@@ -294,11 +313,15 @@ class RDM:
         return
 
     def db_disconnect(self):
+        """ Distroy the existing connection to the publications database. """
+        
         if(self.connection):
             self.connection.close()
         return
 
     def db_search_by_path(self, path):
+        """ Create a connection to the publications database. """
+        
         try:
             with self.connection:
                 c = self.connection.cursor()
@@ -310,7 +333,8 @@ class RDM:
             return None
     
     def db_exists(self):
-        """ Return True if the publications table exists in the database. """
+        """ Return True if the publications table exists in the database, otherwise return False. """
+        
         with self.connection:
             c = self.connection.cursor()
             c.execute("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name=?)", [PUBLICATIONS_TABLE])
@@ -321,16 +345,25 @@ class RDM:
                 return False
 
     def db_select_all(self):
-        """ Return all rows of the database. """
+        """ Return all rows of the database.
+        
+        :rtype: list
+        :returns: All rows of the database.
+        """
+        
         query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
         with self.connection:
             c = self.connection.cursor()
             c.execute(query)
             return c.fetchall()
 
-
     def db_select_unpublished(self):
-        """ Return all rows of the database in which the DOI field is NULL. """
+        """ Return all rows of the database in which the DOI field is NULL.
+        
+        :rtype: list
+        :returns: All rows of the database in which the DOI field is NULL.
+        """
+        
         query = "SELECT * FROM %s WHERE doi IS NULL" % PUBLICATIONS_TABLE
         with self.connection:
             c = self.connection.cursor()
@@ -343,7 +376,13 @@ class RDM:
         return paths
 
     def expand_paths(self, paths):
-        # Expand and get the absolute paths
+        """ Expand and get the absolute paths.
+        
+        :arg paths: A string, or list of strings, of absolute or relative paths to files.
+        :rtype: list
+        :returns: A list of expanded paths.
+        """
+        
         expanded_paths = []
         if isinstance(paths, str):  # A single path
             expanded = glob.glob(paths)
@@ -401,7 +440,7 @@ if(__name__ == "__main__"):
         logger.setLevel(logging.DEBUG)
 
     # Execute the desired subcommand
-    rdm = RDM()
+    rdm = GitRDM()
     if args.subcommand == "init":
         rdm.initialise()
     elif args.subcommand == "add":
@@ -416,4 +455,3 @@ if(__name__ == "__main__"):
         rdm.show(service=args.service, pid=args.pid)
     else:
         _LOG.error("Unknown git-rdm subcommand '%s'" % args.subcommand)
-        
