@@ -232,7 +232,7 @@ class GitRDM:
         
         # Pretty print
         try:
-                _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
+            _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
         except:
             _LOG.info(publication_details)
             
