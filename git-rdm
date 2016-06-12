@@ -10,6 +10,7 @@ import logging
 import sqlite3 as sqlite
 import datetime
 import glob
+import json
 
 _LOG = logging.getLogger(__name__)
 _HANDLER = logging.StreamHandler()
@@ -222,7 +223,8 @@ class GitRDM:
         publisher = Publisher(service=service)
         
         if service == "figshare":
-            _LOG.info(publisher.figshare.get_article_details(article_id=pid))
+            publication_details = publisher.figshare.get_article_details(article_id=pid)
+            _LOG.info(json.dumps(publication_details, sort_keys=True, indent=4, separators=(',', ': ')))
         elif service == "zenodo":
             _LOG.info(publisher.zenodo.retrieve_deposition(deposition_id=int(pid)))
         else:

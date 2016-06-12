@@ -2,7 +2,7 @@
 
 Git-RDM is a Research Data Management (RDM) plugin for the [Git](https://git-scm.com/) version control system.
 
-Much like the standard Git commands, Git-RDM allows users to add/rm files in a 'publication staging area'. When ready, users publish these staged files to a repository hosting service; currently only [Figshare](https://figshare.com/) and [Zenodo](http://zenodo.org/) are supported.
+Much like the standard Git commands, Git-RDM allows users to add/rm files to a 'publication staging area'. When ready, users can readily publish these staged files to a repository hosting service via the command line. Details of the files and their associated publication(s) are recorded in a local database, including the specific Git revision (in the form of a SHA-1 hash) and the DOI, such that a full history of data publication is maintained.
 
 # Dependencies
 
@@ -44,6 +44,8 @@ The file being added must be under Git version control, otherwise Git-RDM will r
 ### git rdm ls
 
 ### git rdm publish
+
+Note that only [Figshare](https://figshare.com/) and [Zenodo](http://zenodo.org/) are currently supported, but support for new services can be readily added by extending the [PyRDM library](https://pyrdm.readthedocs.io).
 
 ### git rdm show
 
