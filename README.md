@@ -82,7 +82,7 @@ The full publication record maintained by the data repository service can be sho
 ```
 
 ## License
-???????????
+This software is released under the MIT license. See the file called `LICENSE` for more information.
 
 ## Contact
 
