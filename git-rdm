@@ -21,6 +21,7 @@ import sqlite3 as sqlite
 import datetime
 import glob
 import json
+import subprocess
 
 _LOG = logging.getLogger(__name__)
 _HANDLER = logging.StreamHandler()
@@ -233,7 +234,10 @@ class GitRDM:
         publisher = Publisher(service=service)
         
         if service == "figshare":
-            publication_details = publisher.figshare.get_article_details(article_id=pid)
+            try:
+                publication_details = publisher.figshare.get_article_details(article_id=pid)
+            except:
+                publication_details = publisher.figshare.get_article_details(article_id=pid, private=True)
         elif service == "zenodo":
             publication_details = publisher.zenodo.retrieve_deposition(deposition_id=int(pid))
         else:
@@ -269,7 +273,13 @@ class GitRDM:
             return
 
         # Does the user needs to commit any modified files first?
-        modified_files = self.repo.git.diff('HEAD~1..HEAD', name_only=True)
+        modified_files = subprocess.check_output(['git', 'diff', '--name-only']).split()
+        for i in range(len(modified_files)):
+            # Get the absolute path
+            modified_files[i] = self.repo.working_dir + "/" + modified_files[i]
+        _LOG.debug("Modified files: %s" % str(modified_files))
+        
+        # We only care if the uncommitted changes apply to files in the 'publishing staging area'.
         overlap = False
         for f in to_publish:
             if f["path"] in modified_files:
