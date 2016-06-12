@@ -84,7 +84,7 @@ class GitRDM:
     def add(self, paths):
         """ Add a desired file to the 'publication' staging area.
         
-        arg paths: A string, or list of strings, of absolute or relative paths to files to be added.
+        :arg paths: A string, or list of strings, of absolute or relative paths to files to be added.
         """
         
         self.db_connect()
