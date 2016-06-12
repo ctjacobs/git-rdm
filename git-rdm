@@ -36,7 +36,7 @@ class GitRDM:
         """ Open the Git repository. """
         
         try:
-            self.repo = git.Repo(".")
+            self.repo = git.Repo(".", search_parent_directories=True)
         except git.InvalidGitRepositoryError:
             _LOG.exception("Not in a Git version controlled repository.")
             sys.exit(1)
