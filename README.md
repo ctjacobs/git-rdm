@@ -97,7 +97,7 @@ pyrdm.publisher INFO: Uploading /home/christian/test/test2.txt...
 pyrdm.publisher INFO: All files successfully uploaded.
 ```
 
-The publication information is stored in the local database, and can be viewed using `git rdm ls`.
+The publication information is stored in the local database, and can be viewed using `git rdm ls`. Note that Git-RDM currently publishes the files using the current `HEAD` revision of the Git repository, and not the revision at which the files were first added using `git rdm add`.
 
 ### git rdm ls
 
