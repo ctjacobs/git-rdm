@@ -63,25 +63,6 @@ git-rdm INFO: 	/home/christian/test/test2.txt
 
 The file being added for publication must first have been committed within the Git repository, otherwise Git-RDM will refuse to add it.
 
-### git rdm ls
-
-In order to keep track of which data files have been published, 
-
-Users can choose to list each file, followed by any DOIs associated with it (by default),
-
-```
-christian@elevate ~/test $ git rdm ls
-git-rdm INFO: Files staged for publishing:
-git-rdm INFO: 	/home/christian/test/test1.txt
-git-rdm INFO: 	/home/christian/test/test3.png
-git-rdm INFO: 	/home/christian/test/test2.txt
-```
-
-or choose to list the DOIs first and the files associated with it afterwards,
-
-```
-```
-
 ### git rdm rm
 
 Files can also be removed from the publication staging area using `git rdm rm`:
@@ -91,6 +72,8 @@ christian@elevate ~/test $ git rdm rm test*
 ```
 
 ### git rdm publish
+
+Once all the files are ready to be published, the `git rdm publish` command can be used to publish the files to a data repository hosted by a particular service. The hosting service must be specified as an argument, and can be either `figshare` or `zenodo`. Support for new services can be readily added by extending the [PyRDM library](https://pyrdm.readthedocs.io). Some basic publication information is obtained from the user, for example the title, description, and keyword metadata. PyRDM then interfaces with the hosting service and publishes the data files:
 
 ```
 christian@elevate ~/test $ git rdm publish figshare
@@ -114,7 +97,11 @@ pyrdm.publisher INFO: Uploading /home/christian/test/test2.txt...
 pyrdm.publisher INFO: All files successfully uploaded.
 ```
 
-The publication information is then stored in the database, and can be viewed using `git rdm ls`:
+The publication information is stored in the local database, and can be viewed using `git rdm ls`.
+
+### git rdm ls
+
+`git rdm ls` is used to list and keep track of which data files have been published, and which files are still in the staging area. Users can choose to list each file, followed by any DOIs associated with it (by default) as follows:
 
 ```
 christian@elevate ~/test $ git rdm ls
@@ -127,7 +114,16 @@ git-rdm INFO: 	/home/christian/test/test3.png
 git-rdm INFO: 		10.6084/m9.figshare.3428222 (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
 ```
 
-Note that only [Figshare](https://figshare.com/) and [Zenodo](http://zenodo.org/) are currently supported, but support for new services can be readily added by extending the [PyRDM library](https://pyrdm.readthedocs.io).
+Users can also choose to list the DOIs first and the files associated with it afterwards:
+
+```
+christian@elevate ~/test $ git rdm ls --by-doi
+git-rdm INFO: Published files:
+git-rdm INFO: 	10.6084/m9.figshare.3428222
+git-rdm INFO: 		/home/christian/test/test1.txt (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
+git-rdm INFO: 		/home/christian/test/test3.png (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
+git-rdm INFO: 		/home/christian/test/test2.txt (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
+```
 
 ### git rdm show
 
