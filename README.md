@@ -6,13 +6,24 @@ Much like the standard Git commands, Git-RDM allows users to add/rm files in a '
 
 ## Commands
 
+### git rdm init
 
+
+### git rdm add
+
+### git rdm rm
+
+### git rdm ls
+
+### git rdm publish
+
+### git rdm show
 
 # Dependencies
 
 Git-RDM mostly relies on the standard Python modules. However, two extra modules are needed:
 
-* [GitPython], to access the Git repository's information.
+* [GitPython](https://gitpython.readthedocs.io), to access the Git repository's information.
 * [PyRDM](https://pyrdm.readthedocs.io), to handle the publishing of files.
 
 Both of these dependencies can be installed via `pip` using
