@@ -36,8 +36,8 @@ The Git-RDM plugin comes with several subcommands. The following subsections dem
 In order to start using Git-RDM, the command `git rdm init` must first be run within the Git repository containing the data files to be published. This creates a new directory called `.rdm` containing a database file `publications.db`. All data publication details are stored within this file. Note that this command is similar to `git init` which initialises a new Git repository and creates the `.git` control directory. As an example, consider the `test` directory below, containing files `test1.txt`, `test2.txt` and `test3.png`:
 
 ```
-christian@elevate ~/test $ git rdm init
-christian@elevate ~/test $ ls -lrta
+~/test $ git rdm init
+~/test $ ls -lrta
 total 68
 drwx------ 60 christian christian 20480 Jun 12 23:39 ..
 -rw-r--r--  1 christian christian     5 Jun 12 23:39 test1.txt
@@ -53,8 +53,8 @@ drwxr-xr-x  2 christian christian  4096 Jun 12 23:40 .rdm
 Once the RDM database has been initialised, data files may be added to the 'publication staging area' using `git rdm add` as follows:
 
 ```
-christian@elevate ~/test $ git rdm add test*
-christian@elevate ~/test $ git rdm ls
+~/test $ git rdm add test*
+~/test $ git rdm ls
 git-rdm INFO: Files staged for publishing:
 git-rdm INFO: 	/home/christian/test/test1.txt
 git-rdm INFO: 	/home/christian/test/test3.png
@@ -68,7 +68,7 @@ The file being added for publication must first have been committed within the G
 Files can also be removed from the publication staging area using `git rdm rm`:
 
 ```
-christian@elevate ~/test $ git rdm rm test*
+~/test $ git rdm rm test*
 ```
 
 ### git rdm publish
@@ -76,7 +76,7 @@ christian@elevate ~/test $ git rdm rm test*
 Once all the files are ready to be published, the `git rdm publish` command can be used to publish the files to a data repository hosted by a particular service. The hosting service must be specified as an argument, and can be either `figshare` or `zenodo`. Support for new services can be readily added by extending the [PyRDM library](https://pyrdm.readthedocs.io). Some basic publication information is obtained from the user, for example the title, description, and keyword metadata. PyRDM then interfaces with the hosting service and publishes the data files:
 
 ```
-christian@elevate ~/test $ git rdm publish figshare
+~/test $ git rdm publish figshare
 Private publication? (y/n): y
 git-rdm INFO: Publishing as a private repository...
 Title: Test Article
@@ -104,7 +104,7 @@ The publication information is stored in the local database, and can be viewed u
 `git rdm ls` is used to list and keep track of which data files have been published, and which files are still in the staging area. Users can choose to list each file, followed by any DOIs associated with it (by default) as follows:
 
 ```
-christian@elevate ~/test $ git rdm ls
+~/test $ git rdm ls
 git-rdm INFO: Published files:
 git-rdm INFO: 	/home/christian/test/test1.txt
 git-rdm INFO: 		10.6084/m9.figshare.3428222 (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
@@ -117,7 +117,7 @@ git-rdm INFO: 		10.6084/m9.figshare.3428222 (2016-06-13 @ 00:29:03, revision '1e
 Users can also choose to list the DOIs first and the files associated with it afterwards:
 
 ```
-christian@elevate ~/test $ git rdm ls --by-doi
+~/test $ git rdm ls --by-doi
 git-rdm INFO: Published files:
 git-rdm INFO: 	10.6084/m9.figshare.3428222
 git-rdm INFO: 		/home/christian/test/test1.txt (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
@@ -130,7 +130,7 @@ git-rdm INFO: 		/home/christian/test/test2.txt (2016-06-13 @ 00:29:03, revision 
 The full publication record maintained by the data repository service can be shown using `git rdm show`. It expects two arguments: the name of the hosting service (`figshare` or `zenodo`) and the publication ID. For example, for the publication whose Figshare publication ID is 3428222 (and DOI is `10.6084/m9.figshare.3428222`), the (truncated) output is:
 
 ```
-christian@elevate ~/test $ git rdm show figshare 3428222
+~/test $ git rdm show figshare 3428222
 pyrdm.figshare INFO: Testing Figshare authentication...
 pyrdm.figshare DEBUG: Server returned response 200
 pyrdm.figshare INFO: Authentication test successful.
