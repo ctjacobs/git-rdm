@@ -9,13 +9,15 @@ Much like the standard Git commands, Git-RDM allows users to add/remove files wi
 Git-RDM mostly relies on the standard Python modules and, of course, Git. However, two extra modules are needed:
 
 * [GitPython](https://gitpython.readthedocs.io), to access the Git repository's information.
-* [PyRDM](https://pyrdm.readthedocs.io), to handle the publishing of files.
+* [PyRDM](https://github.com/pyrdm/pyrdm), to handle the publishing of files.
 
 Both of these dependencies can be installed via `pip` using
 
 ```
 sudo pip install -r requirements.txt
 ```
+
+Note that once PyRDM is installed, you will need to setup Figshare/Zenodo authentication tokens and copy them into the PyRDM configuration file in order to publish your data. See the [PyRDM documentation](https://pyrdm.readthedocs.io/en/latest/getting_started.html) for instructions on how to do this.
 
 ## Installing
 
