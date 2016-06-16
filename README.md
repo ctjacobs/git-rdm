@@ -21,7 +21,19 @@ Note that once PyRDM is installed, you will need to setup Figshare/Zenodo authen
 
 ## Installing
 
-A system-wide installation can be achieved by running
+After downloading or cloning this software using
+
+```
+git clone https://github.com/ctjacobs/git-rdm.git
+```
+
+a system-wide installation can be achieved by navigating to the git-rdm directory
+
+```
+cd git-rdm
+```
+
+and running
 
 ```
 sudo python setup.py install
