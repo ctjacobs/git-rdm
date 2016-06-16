@@ -1,0 +1,17 @@
+{
+  "@context": "https://raw.githubusercontent.com/mbjones/codemeta/master/codemeta.jsonld",
+  "@type": "Code",
+  "author": [
+
+  ],
+  "identifier": "",
+  "codeRepository": "https://github.com/ctjacobs/git-rdm",
+  "datePublished": "2016-06-16",
+  "dateModified": "2016-06-16",
+  "dateCreated": "2016-06-16",
+  "description": "Git-RDM is a research data management plugin for the Git version control system.",
+  "keywords": "research data management, git, version control, digital curation, data, publishing, figshare, zenodo",
+  "license": "MIT",
+  "title": "Git-RDM",
+  "version": "v1.0.0"
+}
