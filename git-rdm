@@ -172,15 +172,38 @@ class GitRDM:
         
         return
 
-    def ls(self, path=None, by_doi=True):
+    def ls(self, path=None, by_doi=True, raw=False):
         """ List all published files, and files to be published. If a file has multiple DOIs associated with it then they are all listed together.
         
         :arg path: The relative/absolute path to the file to be listed.
         :arg bool by_doi: List the files by DOI first (i.e. each DOI will be listed at the top level, with names of the files associated with that DOI underneath).
+        :arg bool raw: Print out the entire SQL database table without any formatting.
         """
-        
-        self.db_connect()  
-        
+
+        self.db_connect()
+
+        # Raw database dump of all the rows
+        if raw:
+            _LOG.info("Database dump:")
+
+            query = "SELECT * FROM %s" % PUBLICATIONS_TABLE
+
+            with self.connection:
+                c = self.connection.cursor()
+                c.execute(query)
+                result = c.fetchall()
+                if len(result) > 0:
+                    # Column names
+                    names = list(map(lambda x: x[0], c.description))
+                    _LOG.info(", ".join(names))
+
+                    # Rows
+                    for r in result:
+                        values = [str(r[name]) for name in names]
+                        _LOG.info(", ".join(values))
+
+            return
+
         # If a path is provided, then specify all the publications/DOIs associated with that path.
         if path:
             path = os.path.abspath(path)  # Get the absolute path
@@ -194,7 +217,7 @@ class GitRDM:
                     for r in result:
                         _LOG.info("\t" + str(r["doi"]) + " (" + str(r["date"]) + " @ " + str(r["time"]).split(".")[0] + ", revision '%s')" % r["sha"])
             return
-                
+
         # List all published files.
         if by_doi:
             query = "SELECT * FROM %s WHERE doi IS NOT NULL ORDER BY doi" % PUBLICATIONS_TABLE
@@ -483,6 +506,7 @@ if(__name__ == "__main__"):
     ls_parser = subparsers.add_parser("ls", help="List the published files, and files staged for publishing.")
     ls_parser.add_argument("--path", required=False, help="The path to the file to list.", action="store", type=str, default=None)
     ls_parser.add_argument("--by-doi", help="Group files by DOI.", action="store_true", default=False, dest="by_doi")
+    ls_parser.add_argument("--raw", help="Print out the entire SQL database table without any formatting.", action="store_true", default=False, dest="raw")
     
     # 'git rdm publish'
     publish_parser = subparsers.add_parser("publish", help="Publish the files in the publishing staging area.")
@@ -511,7 +535,7 @@ if(__name__ == "__main__"):
     elif args.subcommand == "rm":
         rdm.rm(args.path)
     elif args.subcommand == "ls":
-        rdm.ls(path=args.path, by_doi=args.by_doi)
+        rdm.ls(path=args.path, by_doi=args.by_doi, raw=args.raw)
     elif args.subcommand == "publish":
         rdm.publish(service=args.service, pid=args.pid)
     elif args.subcommand == "show":
