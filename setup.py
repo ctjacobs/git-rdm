@@ -28,7 +28,7 @@
 from distutils.core import setup
 
 setup(name='git-rdm',
-      version='1.0',
+      version='1.0.1',
       description='Git-RDM is a research data management plugin for the Git version control system.',
       author='Christian T. Jacobs, Alexandros Avdis',
       author_email='christian@christianjacobs.uk',
