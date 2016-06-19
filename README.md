@@ -17,9 +17,15 @@ Both of these dependencies can be installed via `pip` using
 sudo pip install -r requirements.txt
 ```
 
+Alternatively, users can install Git-RDM and its dependencies with [Conda](http://conda.pydata.org/); see the details in the next section.
+
 Note that once PyRDM is installed, you will need to setup Figshare/Zenodo authentication tokens and copy them into the PyRDM configuration file in order to publish your data. See the [PyRDM documentation](https://pyrdm.readthedocs.io/en/latest/getting_started.html) for instructions on how to do this.
 
 ## Installing
+
+Git-RDM can either be installed from source, or via Conda packages; see the appropriate sub-section for more details. Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the RDM-related subcommands described in the Usage section below.
+
+### From source
 
 After downloading or cloning this software using
 
@@ -39,7 +45,13 @@ and running
 sudo python setup.py install
 ```
 
-Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the RDM-related subcommands described in the Usage section below.
+### Conda package
+
+Conda users can install the Git-RDM package and its dependencies using
+
+```
+conda install -c ctjacobs -c pypi -c auto -c ioos -c conda-forge git-rdm
+```
 
 ## Usage
 
