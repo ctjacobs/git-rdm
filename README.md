@@ -139,6 +139,17 @@ git-rdm INFO: 		/home/christian/test/test3.png (2016-06-13 @ 00:29:03, revision 
 git-rdm INFO: 		/home/christian/test/test2.txt (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
 ```
 
+To check the raw, unformatted contents of the entire publications database, use the `--raw` flag:
+
+```
+~/test $ git rdm ls --raw
+git-rdm INFO: Database dump:
+git-rdm INFO: id, path, date, time, sha, pid, doi
+git-rdm INFO: 13, /home/christian/test/test1.txt, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+git-rdm INFO: 14, /home/christian/test/test3.png, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+git-rdm INFO: 15, /home/christian/test/test2.txt, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+```
+
 ### git rdm show
 
 The full publication record maintained by the data repository service can be shown using `git rdm show`. It expects two arguments: the name of the hosting service (`figshare` or `zenodo`) and the publication ID. For example, for the publication whose Figshare publication ID is 3428222 (and DOI is `10.6084/m9.figshare.3428222`), the (truncated) output is:
