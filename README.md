@@ -45,6 +45,18 @@ and running
 sudo python setup.py install
 ```
 
+Alternatively, a local user installation can be achieved using
+
+```
+python setup.py install --prefix=/path/to/custom/install/directory
+```
+
+and adding `/path/to/custom/install/directory/bin` to the `PATH` environment variable:
+
+```
+export PATH=$PATH:/path/to/custom/install/directory/bin
+```
+
 ### Conda package
 
 Conda users can install the Git-RDM package and its dependencies using
