@@ -17,9 +17,15 @@ Both of these dependencies can be installed via `pip` using
 sudo pip install -r requirements.txt
 ```
 
+Alternatively, users can install Git-RDM and its dependencies with [Conda](http://conda.pydata.org/); see the details in the next section.
+
 Note that once PyRDM is installed, you will need to setup Figshare/Zenodo authentication tokens and copy them into the PyRDM configuration file in order to publish your data. See the [PyRDM documentation](https://pyrdm.readthedocs.io/en/latest/getting_started.html) for instructions on how to do this.
 
 ## Installing
+
+Git-RDM can either be installed from source, or via Conda packages; see the appropriate sub-section for more details. Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the RDM-related subcommands described in the Usage section below.
+
+### From source
 
 After downloading or cloning this software using
 
@@ -39,7 +45,25 @@ and running
 sudo python setup.py install
 ```
 
-Once Git-RDM is installed, Git should automatically detect the plugin and recognise the `rdm` command; for example, run `git rdm -h` to list the RDM-related subcommands described in the Usage section below.
+Alternatively, a local user installation can be achieved using
+
+```
+python setup.py install --prefix=/path/to/custom/install/directory
+```
+
+and adding `/path/to/custom/install/directory/bin` to the `PATH` environment variable:
+
+```
+export PATH=$PATH:/path/to/custom/install/directory/bin
+```
+
+### Conda package
+
+Conda users can install the Git-RDM package and its dependencies using
+
+```
+conda install -c ctjacobs -c pypi -c auto -c ioos -c conda-forge git-rdm
+```
 
 ## Usage
 
@@ -139,6 +163,17 @@ git-rdm INFO: 		/home/christian/test/test3.png (2016-06-13 @ 00:29:03, revision 
 git-rdm INFO: 		/home/christian/test/test2.txt (2016-06-13 @ 00:29:03, revision '1eeccabba810b8c91eef82e692713fdb05ca4a32')
 ```
 
+To check the raw, unformatted contents of the entire publications database, use the `--raw` flag:
+
+```
+~/test $ git rdm ls --raw
+git-rdm INFO: Database dump:
+git-rdm INFO: id, path, date, time, sha, pid, doi
+git-rdm INFO: 13, /home/christian/test/test1.txt, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+git-rdm INFO: 14, /home/christian/test/test3.png, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+git-rdm INFO: 15, /home/christian/test/test2.txt, 2016-06-13, 00:29:03.016951, 1eeccabba810b8c91eef82e692713fdb05ca4a32, 3428222, 10.6084/m9.figshare.3428222
+```
+
 ### git rdm show
 
 The full publication record maintained by the data repository service can be shown using `git rdm show`. It expects two arguments: the name of the hosting service (`figshare` or `zenodo`) and the publication ID. For example, for the publication whose Figshare publication ID is 3428222 (and DOI is `10.6084/m9.figshare.3428222`), the (truncated) output is:
@@ -176,6 +211,12 @@ git-rdm INFO: {
 
 ## License
 This software is released under the MIT license. See the file called `LICENSE` for more information.
+
+## Citing
+
+If you use Git-RDM during the course of your research, please consider citing the following paper:
+
+* C. T. Jacobs, A. Avdis (Under Review). Git-RDM: A research data management plugin for the Git version control system. *Journal of Open Source Software*.
 
 ## Contact
 Please send any questions or comments about Git-RDM via email to [Christian Jacobs](http://christianjacobs.uk) at <christian@christianjacobs.uk>.
