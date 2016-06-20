@@ -216,7 +216,7 @@ This software is released under the MIT license. See the file called `LICENSE` f
 
 If you use Git-RDM during the course of your research, please consider citing the following paper:
 
-* C. T. Jacobs, A. Avdis (2016). Git-RDM: A research data management plugin for the Git version control system. *Journal of Open Source Software*.
+* C. T. Jacobs, A. Avdis (2016). Git-RDM: A research data management plugin for the Git version control system. *Journal of Open Source Software*, 29. DOI: [10.21105/joss.00029](http://dx.doi.org/10.21105/joss.00029)
 
 ## Contact
 Please send any questions or comments about Git-RDM via email to [Christian Jacobs](http://christianjacobs.uk) at <christian@christianjacobs.uk>.
